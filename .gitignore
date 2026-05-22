@@ -1,0 +1,13 @@
+*.tar.gz
+*.zip
+goxeou.12fz.com/
+goxeou.12fz.com_iPsNb.tar.gz
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+12fz.com/wp-content/uploads/
+12fz.com/wp-content/cache/
+12fz.com/wp-content/upgrade/
+dev.12fz.com/wp-content/uploads/
+dev.12fz.com/wp-content/cache/
+dev.12fz.com/wp-content/upgrade/
