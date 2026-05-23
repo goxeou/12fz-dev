@@ -11,12 +11,14 @@
 
 set -e
 
-SKILLS_DIR="/root/.skills-github"
+SKILLS_DIR="$HOME/.skills-github"
 HERMES_SKILLS_DIR="$HOME/.hermes/skills"
 GIT_REPO_URL="https://github.com/goxeou/12fz-dev.git"
-GIT_REPO="/root/12fz-dev"
-BACKUP_DIR="/root/.skill-sync-bak"
-LOG_FILE="/var/log/skill-sync.log"
+GIT_REPO="$HOME/12fz-dev"
+BACKUP_DIR="$HOME/.skill-sync-bak"
+LOG_DIR="$HOME/.hermes/logs"
+mkdir -p "$LOG_DIR" 2>/dev/null || true
+LOG_FILE="$LOG_DIR/skill-sync.log"
 TEMP_DIR="/tmp/.skills-sync-$$"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')]" "$@" | tee -a "$LOG_FILE"; }

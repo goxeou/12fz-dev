@@ -13,7 +13,9 @@ set -e
 
 HOSTNAME=$(hostname)
 HERMES_SERVICE="hermes"  # systemd service name
-LOG_DIR="/root/.hermes/logs"
+HOME="${HOME:-/root}"
+LOG_DIR="$HOME/.hermes/logs"
+mkdir -p "$LOG_DIR" 2>/dev/null || true
 GATEWAY_LOG="$LOG_DIR/gateway.log"
 MAX_LOG_MB=100
 MAX_MEM_PCT=80
