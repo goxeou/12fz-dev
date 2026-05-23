@@ -33,6 +33,12 @@ notify_feishu() {
     fi
 }
 
+# ---- 0. 技能同步（从GitHub拉取最新） ----
+SKILL_SYNC_SCRIPT="/root/scripts/skill-sync.sh"
+if [ -f "$SKILL_SYNC_SCRIPT" ]; then
+    bash "$SKILL_SYNC_SCRIPT" >> /var/log/skill-sync.log 2>&1 &
+fi
+
 # ---- 1. 检查 Hermes 进程 ----
 
 check_hermes() {
