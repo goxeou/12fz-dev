@@ -45,11 +45,15 @@ if [ -d "$GIT_REPO" ]; then
     git pull origin master 2>>"$LOG_FILE" || log "⚠️ Git pull 失败"
     SKILLS_DIR="$GIT_REPO/skills"
 else
-    # 无仓库模式 — 直接从GitHub clone技能目录
-    git clone --depth 1 --single-branch "$GIT_REPO_URL" "$TEMP_DIR" 2>>"$LOG_FILE" || {
+    # 无仓库模式 — 直接从GitHub稀疏clone技能目录
+    # --no-checkout + sparse-checkout 避免下载多余文件（31K+文件只下载skills/）
+    git clone --depth 1 --single-branch --filter=blob:none --no-checkout "$GIT_REPO_URL" "$TEMP_DIR" 2>>"$LOG_FILE" || {
         log "❌ Git clone 失败，技能同步跳过"
         exit 1
     }
+    cd "$TEMP_DIR"
+    git sparse-checkout set skills/ 2>/dev/null || true
+    git checkout HEAD 2>>"$LOG_FILE" || true
     SKILLS_DIR="$TEMP_DIR/skills"
 fi
 
