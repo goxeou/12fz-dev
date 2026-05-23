@@ -11,20 +11,35 @@
 
 set -e
 
-SKILLS_DIR="/root/12fz-dev/skills"
+SKILLS_DIR="/root/.skills-github"
 HERMES_SKILLS_DIR="$HOME/.hermes/skills"
+GIT_REPO_URL="https://github.com/goxeou/12fz-dev.git"
 GIT_REPO="/root/12fz-dev"
 BACKUP_DIR="/root/.skill-sync-bak"
 LOG_FILE="/var/log/skill-sync.log"
+TEMP_DIR="/tmp/.skills-sync-$$"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')]" "$@" | tee -a "$LOG_FILE"; }
 
-# ---- 1. 从GitHub拉取 ----
-log "🔄 拉取 GitHub 最新技能..."
-cd "$GIT_REPO"
-git pull origin master 2>>"$LOG_FILE" || {
-    log "⚠️ Git pull 失败，使用本地版本"
-}
+cleanup() { rm -rf "$TEMP_DIR"; }
+trap cleanup EXIT
+
+# ---- 1. 获取技能源码 ----
+log "🔄 获取 GitHub 最新技能..."
+
+if [ -d "$GIT_REPO" ]; then
+    # 完整仓库模式
+    cd "$GIT_REPO"
+    git pull origin master 2>>"$LOG_FILE" || log "⚠️ Git pull 失败"
+    SKILLS_DIR="$GIT_REPO/skills"
+else
+    # 无仓库模式 — 直接从GitHub clone技能目录
+    git clone --depth 1 --single-branch "$GIT_REPO_URL" "$TEMP_DIR" 2>>"$LOG_FILE" || {
+        log "❌ Git clone 失败，技能同步跳过"
+        exit 1
+    }
+    SKILLS_DIR="$TEMP_DIR/skills"
+fi
 
 # ---- 2. 安装公共技能（共享） ----
 log "📦 安装公共技能..."
