@@ -24,6 +24,18 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')]" "$@" | tee -a "$LOG_FILE"; }
 cleanup() { rm -rf "$TEMP_DIR"; }
 trap cleanup EXIT
 
+# 检测代理环境变量（阿里云CentOS7走xray代理）
+if [ -z "$http_proxy" ] && [ -z "$HTTP_PROXY" ]; then
+    # 检查全局git代理
+    GIT_HTTP_PROXY=$(git config --global http.proxy 2>/dev/null || true)
+    if [ -n "$GIT_HTTP_PROXY" ]; then
+        export http_proxy="$GIT_HTTP_PROXY"
+        export https_proxy="$GIT_HTTP_PROXY"
+        export HTTP_PROXY="$GIT_HTTP_PROXY"
+        export HTTPS_PROXY="$GIT_HTTP_PROXY"
+    fi
+fi
+
 # ---- 1. 获取技能源码 ----
 log "🔄 获取 GitHub 最新技能..."
 
