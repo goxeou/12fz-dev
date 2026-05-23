@@ -45,16 +45,31 @@ if [ -d "$GIT_REPO" ]; then
     git pull origin master 2>>"$LOG_FILE" || log "⚠️ Git pull 失败"
     SKILLS_DIR="$GIT_REPO/skills"
 else
-    # 无仓库模式 — 直接从GitHub稀疏clone技能目录
-    # --no-checkout + sparse-checkout 避免下载多余文件（31K+文件只下载skills/）
-    git clone --depth 1 --single-branch --filter=blob:none --no-checkout "$GIT_REPO_URL" "$TEMP_DIR" 2>>"$LOG_FILE" || {
-        log "❌ Git clone 失败，技能同步跳过"
+    # 无仓库模式 — curl下载tar.gz提取skills目录（兼容git 1.8.x）
+    log "  ⏬ curl下载skills/目录..."
+    mkdir -p "$TEMP_DIR"
+    cd "$TEMP_DIR"
+    
+    # 使用curl通过代理（如果设置了git代理）下载master.tar.gz
+    CURL_PROXY=""
+    GIT_PROXY=$(git config --global http.proxy 2>/dev/null || true)
+    [ -n "$GIT_PROXY" ] && CURL_PROXY="-x $GIT_PROXY"
+    
+    # 下载并只提取skills目录，避免下载整个repo（31K+文件）
+    curl -sL $CURL_PROXY --connect-timeout 30 --max-time 120 \
+        "https://github.com/goxeou/12fz-dev/archive/master.tar.gz" 2>>"$LOG_FILE" | \
+        tar -xz --strip=1 -C "$TEMP_DIR" "12fz-dev-master/skills" 2>>"$LOG_FILE" || {
+        log "❌ curl下载失败，技能同步跳过"
         exit 1
     }
-    cd "$TEMP_DIR"
-    git sparse-checkout set skills/ 2>/dev/null || true
-    git checkout HEAD 2>>"$LOG_FILE" || true
-    SKILLS_DIR="$TEMP_DIR/skills"
+    
+    if [ -d "$TEMP_DIR/skills" ]; then
+        SKILLS_DIR="$TEMP_DIR/skills"
+        log "  ✅ 下载成功"
+    else
+        log "❌ skills目录未找到"
+        exit 1
+    fi
 fi
 
 # ---- 2. 安装公共技能（共享） ----
