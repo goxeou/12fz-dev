@@ -2,10 +2,10 @@
 # AgentCore 心跳客户端 — 一键部署脚本
 # ==============================================
 # 主源（GitHub）:
-#   curl -sL https://raw.githubusercontent.com/goxeou/12fz-dev/main/agent-core/install.sh | bash
+#   curl -sL https://raw.githubusercontent.com/goxeou/12fz-dev/master/agent-core/install.sh | bash
 #
 # 备用源（信号站）:
-#   curl -sL https://signal.12fz.com/repo/agent-core/install.sh | bash
+#   curl -sk https://signal.12fz.com/repo/agent-core/install.sh | bash
 #
 # 指定 Agent 名:
 #   curl -sL ...install.sh | bash -s chaogu-ai
@@ -17,8 +17,9 @@ set -e
 # ── 参数 ───────────────────────────────────
 AGENT_NAME="${1:-$(hostname)}"
 TAGS="${2:-}"
-GITHUB_RAW="https://raw.githubusercontent.com/goxeou/12fz-dev/main/agent-core"
+GITHUB_RAW="https://raw.githubusercontent.com/goxeou/12fz-dev/master/agent-core"
 BACKUP_URL="https://signal.12fz.com/repo/agent-core"
+BACKUP_CURL="curl -sk"  # signal 证书不含此域名，需 -sk
 API_URL="https://signal.12fz.com/heartbeat"
 CLIENT_SCRIPT="heartbeat-client.py"
 
@@ -47,15 +48,28 @@ download_file() {
     [ -s "$out" ]
 }
 
+download_file_insecure() {
+    local url="$1"
+    local out="$2"
+    if command -v curl &>/dev/null; then
+        curl -sk -o "$out" "$url" 2>/dev/null
+    elif command -v wget &>/dev/null; then
+        wget -q --no-check-certificate -O "$out" "$url" 2>/dev/null
+    else
+        return 1
+    fi
+    [ -s "$out" ]
+}
+
 echo "📥 下载心跳客户端..."
 
-# 主源：GitHub
+# 主源：GitHub（带SSL验证）
 if download_file "$GITHUB_RAW/$CLIENT_SCRIPT" "$TARGET"; then
     echo "   ✅ GitHub 下载成功"
 else
     echo "   ⚠️ GitHub 不可达，尝试备用源..."
-    # 备用源：signal.12fz.com
-    if download_file "$BACKUP_URL/$CLIENT_SCRIPT" "$TARGET"; then
+    # 备用源：signal.12fz.com（证书未包含signal域名，跳过SSL）
+    if download_file_insecure "$BACKUP_URL/$CLIENT_SCRIPT" "$TARGET"; then
         echo "   ✅ 备用源下载成功"
     else
         echo "   ❌ 所有源下载失败，请检查网络"
