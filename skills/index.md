@@ -16,6 +16,7 @@
 | `health-check` | `shared/health-check/` | 自检/互检流程、监控配置 |
 | `ops-backup` | `shared/ops-backup/` | 备份/恢复流程、灾难恢复预案 |
 | `server-info` | `shared/server-info/` | 服务器清单、域名映射（无密码） |
+| `code-review-graph` | `shared/code-review-graph/` | 代码依赖知识图，AI改代码自动查影响半径 |
 
 ### 🟡 角色技能（按角色分配）
 
